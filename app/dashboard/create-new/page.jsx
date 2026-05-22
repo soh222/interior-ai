@@ -10,14 +10,17 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from './../../../config/firebaseConfig'
 import { useUser } from '@clerk/nextjs'
 import CustomLoading from './_components/CustomLoading'
+import AiOutputDialog from './_components/AiOutputDialog'
 
 function CreateNew() {
 
     const { user } = useUser();
-
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(false);
-
+    const [aiOutputImage, setAiOutputImage] = useState();
+    const [openOuputDialog, setOpenOutputDialog] = useState(false);
+    const [orgImage, setOrgImage] = useState();
+    
     const onHandleInputChange = (value, fieldName) => {
         setFormData(prevData => ({
             ...prevData,
@@ -26,11 +29,13 @@ function CreateNew() {
     }
 
     const generateAIImage = async () => {
+
         console.log("Form Data: ", formData);
         if (!formData.image || !formData.roomType || !formData.designType) {
             alert("Please fill in all required fields.");
             return;
         }   
+
         setLoading(true);
 
         const rawImageUrl = await saveRawImageToFirebase();
@@ -42,9 +47,11 @@ function CreateNew() {
             additionalReq: formData?.additionalReq,
             userEmail: user?.primaryEmailAddress?.emailAddress
         });
+        setAiOutputImage(result.data.result);
+        setOpenOutputDialog(true);
         setLoading(false);
 
-        console.log("result: ", result);
+        console.log("result: ", result.data);
     };
 
     const saveRawImageToFirebase = async () => {
@@ -63,6 +70,8 @@ function CreateNew() {
 
         const downloadUrl = await getDownloadURL(imageRef);
         console.log(downloadUrl);
+
+        setOrgImage(downloadUrl);
 
         return downloadUrl;
     }
@@ -160,6 +169,12 @@ function CreateNew() {
                             Each generation costs one credit
                         </p>
                     </div>
+                    <AiOutputDialog
+                        openDialog={openOuputDialog}
+                        setOpenDialog={setOpenOutputDialog}
+                        orgImage={orgImage}
+                        aiImage={aiOutputImage}
+                    />  
                 </div>
             )}
         </div>
