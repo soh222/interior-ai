@@ -5,11 +5,14 @@ import { db } from "../../../config/db";
 import { desc, eq } from "drizzle-orm";
 import { AiGeneratedImage } from "../../../config/schema";
 import RoomDesignCard from "./RoomDesignCard";
+import AiOutputDialog from "../create-new/_components/AiOutputDialog";
 
 function Listing() {
 
     const { user } = useUser()
     const [userRoomList, setUserRoomList] = useState([])
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState();
     useEffect(() => {
         user && GetUserRoomList();
     }, [user])
@@ -38,13 +41,22 @@ function Listing() {
                 :
                 <div className="grid grid-cols-3 gap-4">
                     {userRoomList.map((room, index) => (
-                        <div key={index}>
+                        <div key={index}
+                            onClick={() => {
+                                setOpenDialog(true);
+                                setSelectedRoom(room);
+                            }}>
                             <RoomDesignCard room={room} />
                         </div>
                     ))}
                 </div>
             }
-
+            <AiOutputDialog
+                openDialog={openDialog}
+                setOpenDialog={setOpenDialog}
+                aiImage={selectedRoom?.aiImage}
+                orgImage={selectedRoom?.orgImage}
+            />
         </div>
     )
 }
