@@ -1,12 +1,28 @@
 "use client"
-import React, { useState } from "react"
-import { useUser } from "@clerk/nextjs"
+import React, { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { db } from "../../../config/db";
+import { desc, eq } from "drizzle-orm";
+import { AiGeneratedImage } from "../../../config/schema";
+import RoomDesignCard from "./RoomDesignCard";
 
 function Listing() {
 
     const { user } = useUser()
     const [userRoomList, setUserRoomList] = useState([])
+    useEffect(() => {
+        user && GetUserRoomList();
+    }, [user])
 
+    const GetUserRoomList = async () => {
+        const result = await db.select().from(AiGeneratedImage)
+            .where(eq(AiGeneratedImage.userEmail, 
+            user?.primaryEmailAddress?.emailAddress))
+            .orderBy(desc(AiGeneratedImage.id
+        ));
+        setUserRoomList(result);
+        console.log(result)
+    }
     return (
         <div>
             <div className="flex justify-between items-center text-xl font-bold">
@@ -20,7 +36,12 @@ function Listing() {
                     No Interior AI Designs Generated Yet
                 </div>
                 :
-                <div>
+                <div className="grid grid-cols-3 gap-4">
+                    {userRoomList.map((room, index) => (
+                        <div key={index}>
+                            <RoomDesignCard room={room} />
+                        </div>
+                    ))}
                 </div>
             }
 
