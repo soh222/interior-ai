@@ -2,7 +2,7 @@
 import React, { useContext } from 'react'
 import { UserButton } from '@clerk/nextjs'
 import { UserDetailContext } from '../../_context/UserDetailContext'
-
+import Link from 'next/link'
 
 function Header() {
 
@@ -12,10 +12,15 @@ function Header() {
         <div className="navbar bg-base-100">
 
             <div className="flex-1">
-                <a className="btn btn-ghost text-xl">Interior AI</a>
+                <Link href="/" className="btn btn-ghost text-xl">
+                    Interior AI
+                </Link>
             </div>
             
-            <div className="flex-none">
+            <div className="flex-none gap-2">
+                <Link href="/dashboard/buy-credits" className="btn btn-ghost">
+                    Buy More Credits
+                </Link>
                 <button className="btn">
                 <div className="badge badge-secondary">
                     {userDetail?.credits}
