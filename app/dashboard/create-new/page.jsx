@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import ImageSelection from './_components/ImageSelection'
 import RoomType from './_components/RoomType'
 import DesignType from './_components/DesignType'
@@ -11,6 +11,9 @@ import { storage } from './../../../config/firebaseConfig'
 import { useUser } from '@clerk/nextjs'
 import CustomLoading from './_components/CustomLoading'
 import AiOutputDialog from './_components/AiOutputDialog'
+import {db} from '../../../config/db';
+import { Users } from '../../../config/schema';
+import { UserDetailContext } from '../../_context/UserDetailContext';
 
 function CreateNew() {
 
@@ -20,14 +23,24 @@ function CreateNew() {
     const [aiOutputImage, setAiOutputImage] = useState();
     const [openOuputDialog, setOpenOutputDialog] = useState(false);
     const [orgImage, setOrgImage] = useState();
-    
+    const {userDetail, setUserDetail} = useContext(UserDetailContext);
+
     const onHandleInputChange = (value, fieldName) => {
         setFormData(prevData => ({
             ...prevData,
             [fieldName]: value
         }));
     }
-
+    const updateUserCredits = async () => {
+        const result = await db.update(Users).set({
+            credits: userDetail?.credits - 1
+        }).returning({id: Users.id});
+        if (result) {
+            setUserDetail(prev => ({...prev, credits: userDetail?.credits - 1}));
+            return result[0].id;
+        }
+    };
+    
     const generateAIImage = async () => {
 
         console.log("Form Data: ", formData);
@@ -47,7 +60,9 @@ function CreateNew() {
             additionalReq: formData?.additionalReq,
             userEmail: user?.primaryEmailAddress?.emailAddress
         });
+
         setAiOutputImage(result.data.result);
+        await updateUserCredits();
         setOpenOutputDialog(true);
         setLoading(false);
 
